@@ -583,7 +583,7 @@ class CarController():
       if desired_speed > max_lead_adj:
         desired_speed = max_lead_adj
 
-    reenable_cruise_atspd = desired_speed
+    reenable_cruise_atspd = desired_speed * 1.03
     if stoplinesp > 0.7 and clu11_speed < 45:
       # about to hit a stop sign and we are going slow enough to handle it
       desired_speed = 0
@@ -642,11 +642,10 @@ class CarController():
         self.temp_disable_spamming = 3 # take a break
 
     # are we using the auto resume feature?
-    if CS.opkr_autoresume and CS.possibly_reenable_cruise and self.temp_disable_spamming <= 0 and clu11_speed < reenable_cruise_atspd + 0.75:
+    if CS.opkr_autoresume and CS.possibly_reenable_cruise and self.temp_disable_spamming <= 0 and clu11_speed <= reenable_cruise_atspd:
       # big careful check to see if we can auto-resume cruise control
       can_sends.append(create_cpress(self.packer, CS.clu11, Buttons.SET_DECEL)) # re-enable cruise at our current speed
       self.temp_disable_spamming = 5 # take a break
-      CS.time_cruise_cancelled = datetime.datetime(2000, 10, 1, 1, 1, 1,0) # reset timestamp
 
     if CS.CP.mdpsBus: # send mdps12 to LKAS to prevent LKAS error
       can_sends.append(create_mdps12(self.packer, frame, CS.mdps12))

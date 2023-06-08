@@ -245,7 +245,6 @@ struct CarState {
   aReqValue @54 :Float32;
   engineRpm @55 :Float32;
   chargeMeter @56 :Float32;
-  possibly_reenable_cruise @57 :Bool;
 
   struct TPMS {
     unit @0 :Int8;
@@ -269,7 +268,7 @@ struct CarState {
     available @2 :Bool;
     speedOffset @3 :Float32;
     standstill @4 :Bool;
-    nonAdaptive @5 :Bool;
+    possibly_reenable_cruise @5 :Bool;
     # atom
     modeSel @6 :Int16;
     cruiseSwState @7 :Int16;

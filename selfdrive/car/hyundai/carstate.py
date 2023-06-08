@@ -37,7 +37,6 @@ class CarState(CarStateBase):
 
     self.pilotEnabled = False
     self.max_speed_set = 0
-    self.possibly_reenable_cruise = False
     self.time_cruise_cancelled = datetime.datetime(2000, 10, 1, 1, 1, 1,0)
 
     self.driverAcc_time = 0
@@ -278,12 +277,12 @@ class CarState(CarStateBase):
     self.gasPressed = ret.gasPressed
 
     # autoresume features
-    self.possibly_reenable_cruise = False
+    ret.cruiseState.possibly_reenable_cruise = False
     if ret.brakePressed or ret.gasPressed or self.clu_Vanz < 20:
       # dont re-enable cruise if are manually modifying speed, or we've dropped below cruise speed
       self.time_cruise_cancelled = datetime.datetime(2000, 10, 1, 1, 1, 1,0)
     elif self.opkr_autoresume and not self.acc_active and (datetime.datetime.now() - self.time_cruise_cancelled).total_seconds() < 5.0:
-      self.possibly_reenable_cruise = True 
+      ret.cruiseState.possibly_reenable_cruise = True 
 
     # opkr
     ret.tpms = self.get_tpms(

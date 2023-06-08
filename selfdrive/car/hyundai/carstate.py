@@ -8,6 +8,7 @@ from selfdrive.car.hyundai.values import DBC, STEER_THRESHOLD, FEATURES, EV_CAR,
 from selfdrive.car.interfaces import CarStateBase
 from common.numpy_fast import interp
 from common.params import Params
+import datetime
 
 GearShifter = car.CarState.GearShifter
 
@@ -36,6 +37,8 @@ class CarState(CarStateBase):
 
     self.pilotEnabled = False
     self.max_speed_set = 0
+    self.possibly_reenable_cruise = False
+    self.time_cruise_cancelled = datetime.datetime(2000, 10, 1, 1, 1, 1,0)
 
     self.driverAcc_time = 0
 
@@ -47,6 +50,7 @@ class CarState(CarStateBase):
     self.gear_correction = Params().get_bool("JustDoGearD")
     self.fca11_message = Params().get_bool("FCA11Message")
     self.rd_conf = Params().get_bool("RadarDisable")
+    self.opkr_autoresume = Params().get_bool("OpkrAutoResume") 
     self.brake_check = False
     self.cancel_check = False
     
@@ -273,6 +277,14 @@ class CarState(CarStateBase):
     self.parkBrake = cp.vl["TCS13"]["PBRAKE_ACT"] == 1
     self.gasPressed = ret.gasPressed
 
+    # autoresume features
+    self.possibly_reenable_cruise = False
+    if ret.brakePressed or ret.gasPressed:
+      # dont re-enable cruise if are manually modifying speed
+      self.time_cruise_cancelled = datetime.datetime(2000, 10, 1, 1, 1, 1,0)
+    elif self.opkr_autoresume and (datetime.datetime.now() - self.time_cruise_cancelled).total_seconds() < 5:
+      self.possibly_reenable_cruise = True 
+
     # opkr
     ret.tpms = self.get_tpms(
       cp.vl["TPMS11"]["UNIT"],
@@ -284,7 +296,6 @@ class CarState(CarStateBase):
 
     # OPKR
     self.sm.update(0)
-    vCruiseMax = self.sm['controlsState'].vCruise
 
     ret.safetySign = 0 #self.safety_sign
     ret.safetyDist = 0 #self.safety_dist

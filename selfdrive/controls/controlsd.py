@@ -442,9 +442,9 @@ class Controls:
         self.events.add(EventName.cruiseMismatch)
 
     # Check for FCW
-    stock_long_is_braking = self.enabled and not self.CP.openpilotLongitudinalControl and CS.aEgo < -1.25
-    model_fcw = self.sm['modelV2'].meta.hardBrakePredicted and not CS.brakePressed and not stock_long_is_braking
-    planner_fcw = self.sm['longitudinalPlan'].fcw and self.enabled
+    #stock_long_is_braking = self.enabled and not self.CP.openpilotLongitudinalControl and CS.aEgo < -1.25
+    #model_fcw = self.sm['modelV2'].meta.hardBrakePredicted and not CS.brakePressed and not stock_long_is_braking
+    #planner_fcw = self.sm['longitudinalPlan'].fcw and self.enabled
     #if planner_fcw or model_fcw:
     #  self.events.add(EventName.fcw)
 
@@ -552,7 +552,8 @@ class Controls:
 
     # automatically set desired top speed based on current speed
     # in intervals of 4, as that is what our button presses do
-    if CS.brakeLights or CS.gasPressed or CS.cruiseState.speed <= 0:
+    # if we are considering whether to re-enable cruise and mid-auto-slowdown, don't change our set speed as we may want to resume to it
+    if CS.brakeLights or CS.gasPressed or CS.cruiseState.speed <= 0 and not CS.possibly_reenable_cruise:
       set_to_mph = 26 # default base speed
       current_mph = CS.vEgo * 2.23694 # convert m/s -> mph
       if current_mph > 26:
@@ -564,7 +565,7 @@ class Controls:
         set_to_mph = 26 + interval_count * interval
       self.v_cruise_kph = set_to_mph * 1.60934 # convert back to mph
     else:
-      # not pressing gas/brake, and cruise is set, use button presses to control speed
+      # not pressing gas/brake, and cruise is set (or might be reenabled), use button presses to control speed
       self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.button_timers, self.enabled, IS_KPH)
     self.CP.vCruisekph = self.v_cruise_kph
 
